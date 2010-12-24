@@ -20,6 +20,12 @@ package com.destroytoday.twitteraspirin.vo {
 		
 		public var user:UserVO;
 		
+		public var mentions:Vector.<UserMentionVO>;
+		
+		public var urls:Vector.<StatusTextUrlVO>;
+		
+		public var hashtags:Vector.<StatusTextHashTagVO>
+		
 		//public var geo;
 		
 		//public var contributors;

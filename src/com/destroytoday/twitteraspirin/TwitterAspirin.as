@@ -477,13 +477,15 @@ package com.destroytoday.twitteraspirin {
 			return loader;
 		}
 		
-		public function getHomeTimeline(accessToken:XAuthTokenVO, sinceID:Number = NaN, maxID:Number = NaN, count:int = 20, page:int = 1):XMLLoader {
+		public function getHomeTimeline(accessToken:XAuthTokenVO, sinceID:Number = NaN, maxID:Number = NaN, count:int = 20, page:int = 1, includeEntities:Boolean=true):XMLLoader {
 			var parameters:URLVariables = new URLVariables();
 			
 			if (sinceID > 0) parameters['since_id'] = sinceID;
 			if (maxID > 0) parameters['max_id'] = maxID;
 			parameters['count'] = count;
 			if (page > 1) parameters['page'] = page;
+			
+			if (includeEntities) parameters['include_entities'] = "t";
 			
 			var loader:XMLLoader = loaderFactory.getXMLLoader(gotTimelineHandler, gotTimelineErrorHandler);
 			

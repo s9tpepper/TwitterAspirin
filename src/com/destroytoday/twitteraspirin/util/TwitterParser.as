@@ -3,7 +3,10 @@ package com.destroytoday.twitteraspirin.util {
 	import com.destroytoday.twitteraspirin.vo.DirectMessageVO;
 	import com.destroytoday.twitteraspirin.vo.RelationshipVO;
 	import com.destroytoday.twitteraspirin.vo.SearchStatusVO;
+	import com.destroytoday.twitteraspirin.vo.StatusTextHashTagVO;
+	import com.destroytoday.twitteraspirin.vo.StatusTextUrlVO;
 	import com.destroytoday.twitteraspirin.vo.StatusVO;
+	import com.destroytoday.twitteraspirin.vo.UserMentionVO;
 	import com.destroytoday.twitteraspirin.vo.UserVO;
 	
 	import flash.system.System;
@@ -30,7 +33,10 @@ package com.destroytoday.twitteraspirin.util {
 		 */		
 		public static function parseStatus(data:XML, disposeXML:Boolean = true):StatusVO {
 			var status:StatusVO = new StatusVO();
-
+				status.mentions = new Vector.<UserMentionVO>();
+				status.urls		= new Vector.<StatusTextUrlVO>;
+				status.hashtags	= new Vector.<StatusTextHashTagVO>();
+			
 			status.id = Number(data.id);
 			status.createdAt = new Date(Date.parse(data.created_at));
 			
@@ -50,6 +56,52 @@ package com.destroytoday.twitteraspirin.util {
 			status.inReplyToScreenName = data.in_reply_to_screen_name;
 			status.favorited = String(data.favorited) == "true";
 			status.user = parseUser(data.user[0]);
+			
+			// Check for include_entities data
+			if (data.entities && data.entities.toString().length)
+			{
+				// Get mentions
+				var mentions:XMLList = data.entities.user_mentions.user_mention;
+				var userMention:XML;
+				var userMentionVO:UserMentionVO;
+				for each (userMention in mentions)
+				{
+					userMentionVO				= new UserMentionVO();
+					userMentionVO.start			= uint(userMention.@start.toString());
+					userMentionVO.end			= uint(userMention.@end.toString());
+					userMentionVO.id			= uint(userMention.id.toString());
+					userMentionVO.screen_name	= userMention.screen_name.toString();
+					userMentionVO.name			= userMention['name'].toString();
+					status.mentions.push(userMentionVO);
+				}
+				
+				// Get urls
+				var urls:XMLList = data.entities.urls.url;
+				var url:XML;
+				var urlVO:StatusTextUrlVO;
+				for each (url in urls)
+				{
+					urlVO				= new StatusTextUrlVO();
+					urlVO.start			= url.@start.toString();
+					urlVO.end			= url.@end.toString();
+					urlVO.url			= url.url.toString();
+					urlVO.expanded_url	= url.expanded_url.toString();
+					status.urls.push(urlVO);
+				}
+				
+				// Get hashtags
+				var hashTags:XMLList = data.entities.hashtags.hashtag;
+				var hashTag:XML;
+				var hashTagVO:StatusTextHashTagVO;
+				for each (hashTag in hashTags)
+				{
+					hashTagVO			= new StatusTextHashTagVO();
+					hashTagVO.start		= hashTag.@start.toString();
+					hashTagVO.end		= hashTag.@end.toString();
+					hashTagVO.text		= hashTag['text'].toString();
+					status.hashtags.push(hashTagVO);
+				}
+			}
 
 			// free XML from memory
 			if (disposeXML) System.disposeXML(data);
